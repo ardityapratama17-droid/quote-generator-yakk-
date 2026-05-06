@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Generator - Abadikan Kata-Katamu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Poppins', sans-serif;
+        }
+        .quote-text {
+            font-family: 'Playfair Display', serif;
+        }
+        canvas {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-radius: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #e94560 0%, #ff6b81 100%);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #ff6b81 0%, #e94560 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen py-10 px-4 text-white">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- HEADER -->
+        <div class="text-center mb-8">
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-2">✍️ Quotes Generator</h1>
+            <p class="text-slate-300 text-lg">Abadikan kata-katamu layaknya tinta di atas kertas</p>
+            <p class="text-slate-300 text-lg">-yakk</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            
+            <!-- FORM INPUT -->
+            <div class="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20">
+                <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">📝 Isi Kutipan</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-300 mb-2">Teks Kutipan</label>
+                    <textarea 
+                        id="quoteText" 
+                        rows="5" 
+                        class="w-full p-4 rounded-xl bg-black/30 border border-white/10 focus:border-pink-500 focus:outline-none resize-none"
+                        placeholder="Tulis kata-kata mutiara disini..."
+                    ></textarea>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm text-slate-300 mb-2">🖋️ Penulis / Author</label>
+                    <input 
+                        type="text" 
+                        id="authorText" 
+                        class="w-full p-4 rounded-xl bg-black/30 border border-white/10 focus:border-pink-500 focus:outline-none"
+                        placeholder="Nama kamu atau sumber..."
+                    >
+                </div>
+
+                <button onclick="generateQuote()" class="w-full btn-primary py-4 rounded-xl font-bold text-lg shadow-lg hover:opacity-90 transition">
+                    🚀 Generate Canvas
+                </button>
+            </div>
+
+            <!-- PREVIEW AREA -->
+            <div class="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+                <h2 class="text-xl font-semibold mb-4">🖼️ Pratinjau Hasil</h2>
+                
+                <div class="text-center mb-4">
+                    <span class="text-xs bg-white/10 px-3 py-1 rounded-full">Format: JPEG · Estetik</span>
+                </div>
+
+                <canvas id="canvas" width="500" height="500" class="w-full"></canvas>
+                
+                <p id="statusText" class="text-center text-slate-400 mt-4 italic">
+                    Hasil kutipanmu akan muncul di sini<br>Klik "Generate Canvas" untuk memulai
+                </p>
+
+                <a id="downloadBtn" class="hidden mt-6 w-full inline-block text-center py-3 bg-green-600 rounded-xl font-bold hover:bg-green-700 transition" download="quote.png">
+                    📥 Download Gambar
+                </a>
+            </div>
+
+        </div>
+
+        <!-- FOOTER / CREDIT -->
+        <div class="text-center mt-10 pt-6 border-t border-white/10">
+            <p class="text-slate-400 text-sm">
+                ✧･ﾟ: <span class="font-bold text-cyan-400">[𝙍]𝙝𝙢𝙏 | 𝘾𝙤𝙙⚙️𝘼𝙄</span> :･ﾟ✧ <br>
+                <span class="text-xs mt-2 block">Developed by Rahmat Dev • Core Engine Script by Ditzz</span>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function generateQuote() {
+            const text = document.getElementById('quoteText').value || "Tuliskan sesuatu yang indah...";
+            const author = document.getElementById('authorText').value || "Anonymous";
+
+            // Ukuran Canvas
+            const cw = canvas.width;
+            const ch = canvas.height;
+
+            // Background Gradient
+            const gradient = ctx.createLinearGradient(0, 0, cw, ch);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(0.5, '#16213e');
+            gradient.addColorStop(1, '#0f3460');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, cw, ch);
+
+            // Ornamen dekoratif (garis-garis estetik)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, ch - 50);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(50, 50);
+            ctx.lineTo(cw - 50, 50);
+            ctx.stroke();
+
+            // Teks Kutipan
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 28px "Playfair Display"';
+            ctx.textAlign = 'left';
+            wrapText(ctx, text, 70, 120, cw - 120, 45);
+
+            // Garis bawah teks
+            ctx.strokeStyle = '#e94560';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(70, ch - 100);
+            ctx.lineTo(150, ch - 100);
+            ctx.stroke();
+
+            // Teks Author
+            ctx.font = '16px Poppins';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.textAlign = 'right';
+            ctx.fillText(`— ${author}`, cw - 70, ch - 70);
+
+            // Status & Tombol Download
+            document.getElementById('statusText').innerHTML = 'M e n u l i s<br><span class="text-xs">menggoreskan tinta ke kanvas...</span>';
+            const link = document.getElementById('downloadBtn');
+            link.href = canvas.toDataURL('image/png');
+            link.classList.remove('hidden');
+        }
+
+        // Fungsi buat bungkus teks otomatis
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            let words = text.split(' ');
+            let line = '';
+
+            for(let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = context.measureText(testLine);
+                let testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    context.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                }
+                else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line, x, y);
+        }
+    </script>
+
+</body>
+</html>
