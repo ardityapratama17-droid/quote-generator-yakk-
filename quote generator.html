@@ -3,38 +3,438 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quote Generator - Abadikan Kata-Katamu</title>
+    <title>IQC Quote Chat Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            font-family: 'Poppins', sans-serif;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#00B49A',
+                        dark: '#1E293B',
+                        borderColor: '#E2E8F0'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
         }
-        .quote-text {
-            font-family: 'Playfair Display', serif;
+    </script>
+    <style type="text/tailwindcss">
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        @layer utilities {
+            .input-focus {
+                @apply focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary;
+            }
+            .btn {
+                @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white shadow-md shadow-secondary/20;
+            }
+            .color-picker {
+                @apply w-8 h-8 rounded-full cursor-pointer border border-gray-300;
+            }
         }
-        canvas {
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border-radius: 10px;
+
+        /* Area seret foto profil */
+        #dropArea {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
-        .btn-primary {
-            background: linear-gradient(90deg, #e94560 0%, #ff6b81 100%);
+        #dropArea.drag-over {
+            border-color: #165DFF;
+            background: #eff6ff;
         }
-        .btn-primary:hover {
-            background: linear-gradient(90deg, #ff6b81 0%, #e94560 100%);
+        #previewImg {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0.75rem auto 0;
+            display: none;
+            border: 2px solid #165DFF;
         }
     </style>
 </head>
-<body class="min-h-screen py-10 px-4 text-white">
+<body class="bg-gray-100 min-h-screen py-8 flex flex-col">
+    <div class="max-w-xl mx-auto px-4 w-full flex-grow">
+        <h1 class="text-2xl font-bold text-center text-dark mb-6">💬 IQC Quote Chat Generator</h1>
 
-    <div class="max-w-4xl mx-auto">
-        
-        <!-- HEADER -->
-        <div class="text-center mb-8">
-            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-2">✍️ Quotes Generator</h1>
+        <!-- Form Input -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-borderColor mb-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Isi Pesan</label>
+                    <textarea id="chatText" rows="3" class="w-full px-4 py-3 border border-borderColor rounded-xl input-focus resize-none" placeholder="Contoh: Kesendirian adalah teman terbaik ku😂😂">Kesendirian adalah teman terbaik ku😂😂</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Waktu</label>
+                    <input type="text" id="timeText" class="w-full px-4 py-3 border border-borderColor rounded-xl input-focus" placeholder="Contoh: 22.54" value="22.54">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Warna Gelembung</label>
+                        <input type="color" id="bubbleColor" value="#ffc5d5" class="w-full h-10 rounded-lg cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Warna Teks</label>
+                        <input type="color" id="textColor" value="#111111" class="w-full h-10 rounded-lg cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Warna Waktu</label>
+                        <input type="color" id="timeColor" value="#5e4146" class="w-full h-10 rounded-lg cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Warna Centang</label>
+                        <input type="color" id="tickColor" value="#8c1d2c" class="w-full h-10 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="showReaction" checked class="w-4 h-4 text-primary border-borderColor rounded">
+                    <label for="showReaction" class="text-sm text-slate-600">Tampilkan Reaksi Emoji</label>
+                </div>
+            </div>
+
+            <button onclick="generateImage()" class="w-full mt-6 btn btn-primary py-3">
+                🎨 Buat Gambar
+            </button>
+        </div>
+
+        <!-- Hasil Gambar -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-borderColor">
+            <h3 class="text-lg font-semibold text-dark mb-4 text-center">Hasil Gambar</h3>
+            <div class="flex justify-center mb-4 overflow-hidden rounded-lg shadow-md">
+                <canvas id="canvas" width="906" height="1736" class="max-w-full h-auto"></canvas>
+            </div>
+            <div class="flex gap-3 justify-center">
+                <button onclick="downloadImage()" class="btn btn-secondary">💾 Unduh PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-8 py-4 bg-white border-t border-borderColor text-center text-slate-600 text-sm">
+        © 2026 By Yakk | Semua Hak Dilindungi
+    </footer>
+
+    <script>
+        // Konfigurasi dasar
+        const BG_URL = "https://raw.githubusercontent.com/ryyntwx/allimagerin/refs/heads/main/Iqcbyrin.png";
+        const EMOJI_JSON_URL = "https://media.githubusercontent.com/media/Ditzzx-vibecoder/entahlah/main/emoji-apple.json";
+        const BG_W = 906;
+        const BG_H = 1736;
+        const SX = BG_W / 1080;
+        const SY = BG_H / 2280;
+
+        let appleEmojiMap = null;
+
+        // Muat gambar
+        function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error(`Gagal memuat: ${url}`));
+                img.src = url;
+            });
+        }
+
+        // Muat peta emoji Apple
+        async function loadAppleEmojiMap() {
+            if (appleEmojiMap) return appleEmojiMap;
+            try {
+                const res = await fetch(EMOJI_JSON_URL);
+                appleEmojiMap = await res.json();
+                return appleEmojiMap;
+            } catch (err) {
+                console.warn('Tidak bisa memuat emoji khusus, gunakan emoji standar');
+                return null;
+            }
+        }
+
+        // Ubah emoji ke kode unicode
+        function emojiToUnicode(emoji) {
+            return [...emoji].map(c => c.codePointAt(0).toString(16)).join('-');
+        }
+
+        // Gambar emoji Apple resolusi tinggi
+        async function drawAppleEmoji(ctx, emoji, x, y, size) {
+            const map = await loadAppleEmojiMap();
+            if (!map) {
+                ctx.font = `${size}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+                ctx.fillText(emoji, x, y);
+                return;
+            }
+            const base = emojiToUnicode(emoji);
+            const variants = [base, base.replace(/-fe0f/g, ''), base.toUpperCase(), base.replace(/-fe0f/g, '').toUpperCase()];
+            let b64 = null;
+            for (const v of variants) if (map[v]) { b64 = map[v]; break; }
+            if (!b64) {
+                ctx.font = `${size}px "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+                ctx.fillText(emoji, x, y);
+                return;
+            }
+            const img = new Image();
+            img.src = `data:image/png;base64,${b64}`;
+            await new Promise(r => img.onload = r);
+            ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+        }
+
+        // Gambar kotak sudut membulat
+        function drawRoundedRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        // Ukur lebar teks termasuk emoji
+        function measureTextCustom(ctx, text, fontSize) {
+            const parts = text.split(/(\p{Extended_Pictographic})/gu);
+            let total = 0;
+            for (const p of parts) {
+                if (!p) continue;
+                if (/\p{Extended_Pictographic}/u.test(p)) total += fontSize * 1.05;
+                else total += ctx.measureText(p).width;
+            }
+            return total;
+        }
+
+        // Bungkus teks agar tidak melar
+        function wrapText(ctx, text, maxWidth, fontSize) {
+            ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+            const words = text.split(" ");
+            const lines = [];
+            let currentLine = "";
+
+            for (const word of words) {
+                const testLine = currentLine ? `${currentLine} ${word}` : word;
+                const lineWidth = measureTextCustom(ctx, testLine, fontSize);
+
+                if (lineWidth <= maxWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+
+            if (currentLine) lines.push(currentLine);
+            return lines;
+        }
+
+        // Gambar teks lengkap dengan emoji
+        async function drawTextWithEmojis(ctx, text, x, y, fontSize) {
+            const parts = text.split(/(\p{Extended_Pictographic})/gu);
+            let currentX = x;
+            for (const p of parts) {
+                if (!p) continue;
+                if (/\p{Extended_Pictographic}/u.test(p)) {
+                    const size = fontSize * 1.05;
+                    await drawAppleEmoji(ctx, p, currentX + size / 2, y, size);
+                    currentX += size;
+                } else {
+                    ctx.fillText(p, currentX, y);
+                    currentX += ctx.measureText(p).width;
+                }
+            }
+        }
+
+        // Fungsi utama buat gambar
+        async function generateImage() {
+            const text = document.getElementById('chatText').value.trim() || "Kesendirian adalah teman terbaik ku😂😂";
+            const time = document.getElementById('timeText').value.trim() || "22.54";
+            const bubbleColor = document.getElementById('bubbleColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const timeColor = document.getElementById('timeColor').value;
+            const tickColor = document.getElementById('tickColor').value;
+            const showReaction = document.getElementById('showReaction').checked;
+
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            try {
+                const bg = await loadImage(BG_URL);
+                ctx.clearRect(0, 0, BG_W, BG_H);
+                ctx.drawImage(bg, 0, 0, BG_W, BG_H);
+
+                // Ukuran pas seperti aslinya
+                const fontSize = Math.round(45 * SX);
+                const bubbleWidth = Math.round(746 * SX);
+                const textPaddingX = Math.round(36 * SX);
+                const paddingTop = Math.round(28 * SY);
+                const paddingBottom = Math.round(28 * SY);
+                const radius = Math.round(32 * SX);
+                const rightPadding = Math.round(80 * SX);
+                const menuTopBorderY = Math.round(1276 * SY);
+                const timeFontSize = Math.round(23 * SX);
+                const lineGap = Math.round(12 * SY);
+
+                // Hitung lebar gelembung otomatis
+                ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+                const lines = wrapText(ctx, text, bubbleWidth - textPaddingX * 2, fontSize);
+                const lineWidths = lines.map(line => measureTextCustom(ctx, line, fontSize));
+                const maxLineWidth = Math.max(...lineWidths, 0);
+                const timeWidth = ctx.measureText(time).width + Math.round(46 * SX);
+                let bubbleActualW = maxLineWidth + textPaddingX * 2;
+                const minBubbleW = Math.round(280 * SX);
+                if (bubbleActualW < minBubbleW) bubbleActualW = minBubbleW;
+                if (bubbleActualW > bubbleWidth) bubbleActualW = bubbleWidth;
+
+                const bubbleX = BG_W - bubbleActualW - rightPadding;
+                const textTotalHeight = lines.length * fontSize + (lines.length - 1) * lineGap;
+                const bubbleHeight = paddingTop + textTotalHeight + paddingBottom;
+                const bubbleY = menuTopBorderY - bubbleHeight - Math.round(28 * SY);
+
+                // Gambar gelembung + ekor
+                ctx.save();
+                ctx.shadowColor = "rgba(0,0,0,0.05)";
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetY = 6;
+                ctx.fillStyle = bubbleColor;
+                drawRoundedRect(ctx, bubbleX, bubbleY, bubbleActualW, bubbleHeight, radius);
+                ctx.fill();
+                ctx.restore();
+
+                // Ekor gelembung kanan
+                ctx.beginPath();
+                ctx.moveTo(bubbleX + bubbleActualW - Math.round(15 * SX), bubbleY + bubbleHeight - 5);
+                ctx.lineTo(bubbleX + bubbleActualW + Math.round(10 * SX), bubbleY + bubbleHeight - 5);
+                ctx.quadraticCurveTo(
+                    bubbleX + bubbleActualW + Math.round(2 * SX),
+                    bubbleY + bubbleHeight - Math.round(20 * SY),
+                    bubbleX + bubbleActualW - Math.round(1 * SX),
+                    bubbleY + bubbleHeight - Math.round(32 * SY)
+                );
+                ctx.fillStyle = bubbleColor;
+                ctx.fill();
+
+                // Gambar teks
+                ctx.fillStyle = textColor;
+                ctx.font = `500 ${fontSize}px Inter, system-ui, sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                for (let i = 0; i < lines.length; i++) {
+                    const y = bubbleY + paddingTop + (i * (fontSize + lineGap)) + fontSize / 2;
+                    await drawTextWithEmojis(ctx, lines[i], bubbleX + textPaddingX, y, fontSize);
+                }
+
+                // Gambar waktu & centang
+                const timeY = bubbleY + bubbleHeight - paddingBottom - timeFontSize + Math.round(4 * SY);
+                const timeX = bubbleX + bubbleActualW - textPaddingX - timeWidth;
+                ctx.fillStyle = timeColor;
+                ctx.font = `600 ${timeFontSize}px Inter, system-ui, sans-serif`;
+                ctx.textBaseline = 'top';
+                ctx.fillText(time, timeX, timeY);
+
+                // Gambar centang ganda
+                const tickX = timeX + ctx.measureText(time).width + Math.round(10 * SX);
+                const tickY = timeY + (timeFontSize / 2) - Math.round(8 * SX);
+                ctx.strokeStyle = tickColor;
+                ctx.lineWidth = 3.6 * SX;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                ctx.beginPath();
+                ctx.moveTo(tickX, tickY + Math.round(8 * SX));
+                ctx.lineTo(tickX + Math.round(6 * SX), tickY + Math.round(14 * SX));
+                ctx.lineTo(tickX + Math.round(16 * SX), tickY + Math.round(2 * SX));
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(tickX + Math.round(7 * SX), tickY + Math.round(8 * SX));
+                ctx.lineTo(tickX + Math.round(13 * SX), tickY + Math.round(14 * SX));
+                ctx.lineTo(tickX + Math.round(23 * SX), tickY + Math.round(2 * SX));
+                ctx.stroke();
+
+                // Gambar reaksi emoji
+                if (showReaction) {
+                    const emojis = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+                    const emojiSize = Math.round(90 * SX);
+                    const emojiSpacing = Math.round(110 * SX);
+                    const rxHeight = Math.round(160 * SX);
+                    const startPad = Math.round(52 * SX);
+                    const rxWidth = startPad + (emojis.length - 1) * emojiSpacing + Math.round(130 * SX);
+                    const rxX = bubbleX + bubbleActualW - rxWidth;
+                    const rxY = bubbleY - rxHeight + Math.round(10 * SY);
+
+                    ctx.save();
+                    ctx.shadowColor = "rgba(0,0,0,0.12)";
+                    ctx.shadowBlur = 36;
+                    ctx.shadowOffsetY = 16;
+                    ctx.fillStyle = "#FFFFFF";
+                    drawRoundedRect(ctx, rxX, rxY, rxWidth, rxHeight, rxHeight / 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    const emojiCY = rxY + rxHeight / 2;
+                    for (let i = 0; i < emojis.length; i++) {
+                        await drawAppleEmoji(ctx, emojis[i], rxX + startPad + i * emojiSpacing, emojiCY, emojiSize);
+                    }
+
+                    // Tombol tambah reaksi
+                    const plusX = rxX + startPad + (emojis.length - 1) * emojiSpacing + Math.round(90 * SX);
+                    const plusR = Math.round(38 * SX);
+                    ctx.beginPath();
+                    ctx.arc(plusX, emojiCY, plusR, 0, Math.PI * 2);
+                    ctx.fillStyle = "#E5E5EA";
+                    ctx.fill();
+                    ctx.strokeStyle = "#8E8E93";
+                    ctx.lineWidth = 4.5 * SX;
+                    ctx.beginPath();
+                    ctx.moveTo(plusX - Math.round(13 * SX), emojiCY);
+                    ctx.lineTo(plusX + Math.round(13 * SX), emojiCY);
+                    ctx.moveTo(plusX, emojiCY - Math.round(13 * SX));
+                    ctx.lineTo(plusX, emojiCY + Math.round(13 * SX));
+                    ctx.stroke();
+                }
+
+                // Gambar menu opsi
+                const menuY = menuTopBorderY;
+                const menuW = Math.round(720 * SX);
+                const menuX = BG_W - menuW - rightPadding;
+                const menuH = Math.round(580 * SY);
+                drawRoundedRect(ctx, menuX, menuY, menuW, menuH, Math.round(24 * SX));
+                ctx.fillStyle = "#FFFFFF";
+                ctx.shadowColor = "rgba(0,0,0,0.1)";
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetY = 8;
+                ctx.fill();
+
+                const menuItems = [
+                    { text: "Balas", icon: "↩️" },
+                    { text: "Teruskan", icon: "↪️" },
+                    { text: "Salin", icon: "📋" },
+                    { text: "Edit", icon: "✏️" },
+                    { text: "Info", icon: "ⓘ" },
+                    { text: "Beri bintang", icon: "⭐" },
+                    { text: "Hapus", icon: "🗑️", color: "#E53935" }
+                ];
+                const itemH = Math.round(82 * SY);
+                const iconX = menuX + Math.round(40 * SX);
+                const textX = menuX + Math.round(90 * SX);
+                const menuFont = Math.round(32 * SX);
+
+                for (let i = 0; i < menuItems.length; i++) {
+                    c            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-2">✍️ Quotes Generator</h1>
             <p class="text-slate-300 text-lg">Abadikan kata-katamu layaknya tinta di atas kertas</p>
             <p class="text-slate-300 text-lg">-yakk</p>
         </div>
